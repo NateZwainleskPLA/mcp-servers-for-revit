@@ -60,12 +60,14 @@ The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSo
 
 ## MCP Server Setup
 
-The MCP server is published as an npm package and can be run directly with `npx`.
+The MCP server is published as an npm package and can be run directly with `npx`. You must specify your Revit version with `--revit-version` so the server connects to the correct port.
+
+The plugin auto-assigns a port based on the Revit version (`8020 + year % 100`), so Revit 2024 uses port 8044, 2025 uses 8045, etc. Multiple Revit versions can run simultaneously.
 
 **Claude Code**
 
 ```bash
-claude mcp add mcp-server-for-revit -- cmd /c npx -y mcp-server-for-revit
+claude mcp add revit-2025 -- cmd /c npx -y mcp-server-for-revit --revit-version 2025
 ```
 
 **Claude Desktop**
@@ -75,13 +77,32 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 ```json
 {
     "mcpServers": {
-        "mcp-server-for-revit": {
+        "revit-2025": {
             "command": "cmd",
-            "args": ["/c", "npx", "-y", "mcp-server-for-revit"]
+            "args": ["/c", "npx", "-y", "mcp-server-for-revit", "--revit-version", "2025"]
         }
     }
 }
 ```
+
+To connect to multiple Revit versions, add separate entries for each:
+
+```json
+{
+    "mcpServers": {
+        "revit-2024": {
+            "command": "cmd",
+            "args": ["/c", "npx", "-y", "mcp-server-for-revit", "--revit-version", "2024"]
+        },
+        "revit-2025": {
+            "command": "cmd",
+            "args": ["/c", "npx", "-y", "mcp-server-for-revit", "--revit-version", "2025"]
+        }
+    }
+}
+```
+
+You can also use `--port <number>` for a specific port, or set the `REVIT_MCP_PORT` environment variable.
 
 Restart Claude Desktop. When you see the hammer icon, the MCP server is connected.
 
@@ -94,6 +115,15 @@ If using a release ZIP, the plugin is already included. For manual installation:
 1. Build the plugin from `plugin/` (see [Development](#development))
 2. Copy `mcp-servers-for-revit.addin` to `%AppData%\Autodesk\Revit\Addins\<version>\`
 3. Copy the `revit_mcp_plugin/` folder to the same addins directory
+
+### Starting the Plugin
+
+1. Open Revit — the plugin loads automatically
+2. Click **"Revit MCP Switch"** in the ribbon to start the socket server. A dialog will confirm the port (e.g. "Server started on port 8046")
+3. Open **Settings** and enable the commands you want to use
+4. Make sure the `--revit-version` in your MCP server config matches the Revit version you started
+
+> **Note:** If you toggle the MCP Switch, you may need to toggle it off and on again for command changes to take effect.
 
 ## Command Set Setup
 
