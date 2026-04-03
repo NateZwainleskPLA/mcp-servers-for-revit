@@ -390,6 +390,8 @@ namespace revit_mcp_plugin.UI
                             "Command Set Exists", MessageBoxButton.YesNo, MessageBoxImage.Question);
                         if (result != MessageBoxResult.Yes)
                             return;
+
+                        Directory.Delete(destinationFolder, true);
                     }
 
                     CopyDirectory(sourceFolder, destinationFolder);
