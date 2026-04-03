@@ -1,11 +1,12 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
+using RevitElementIdExtensions = RevitMCPCommandSet.Utils.ElementIdExtensions;
 
 namespace RevitMCPCommandSet.Services.DataExtraction
 {
@@ -30,11 +31,7 @@ namespace RevitMCPCommandSet.Services.DataExtraction
             {
                 var doc = app.ActiveUIDocument.Document;
 
-#if REVIT2024_OR_GREATER
-                var source = doc.GetElement(new ElementId(SourceElementId));
-#else
-                var source = doc.GetElement(new ElementId((int)SourceElementId));
-#endif
+                var source = doc.GetElement(RevitElementIdExtensions.FromLong(SourceElementId));
                 if (source == null)
                     throw new ArgumentException($"Source element {SourceElementId} not found");
 
@@ -42,12 +39,10 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                 var sourceValues = new Dictionary<string, (StorageType type, object value, bool isType)>();
                 foreach (Parameter p in source.Parameters)
                 {
-                    if (p.IsReadOnly) continue;
                     if (ParameterNames.Count > 0 && !ParameterNames.Contains(p.Definition.Name)) continue;
 
-                    var val = GetParameterValue(p);
-                    if (val != null)
-                        sourceValues[p.Definition.Name] = (p.StorageType, val, false);
+                    if (ParameterValueUtils.TryGetWritableParameterValue(p, out var value))
+                        sourceValues[p.Definition.Name] = (value.Type, value.Value, false);
                 }
 
                 // Include type parameters if requested
@@ -58,13 +53,11 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                     {
                         foreach (Parameter p in sourceType.Parameters)
                         {
-                            if (p.IsReadOnly) continue;
                             if (ParameterNames.Count > 0 && !ParameterNames.Contains(p.Definition.Name)) continue;
                             if (sourceValues.ContainsKey(p.Definition.Name)) continue;
 
-                            var val = GetParameterValue(p);
-                            if (val != null)
-                                sourceValues[p.Definition.Name] = (p.StorageType, val, true);
+                            if (ParameterValueUtils.TryGetWritableParameterValue(p, out var value))
+                                sourceValues[p.Definition.Name] = (value.Type, value.Value, true);
                         }
                     }
                 }
@@ -79,11 +72,7 @@ namespace RevitMCPCommandSet.Services.DataExtraction
 
                     foreach (var targetId in TargetElementIds)
                     {
-#if REVIT2024_OR_GREATER
-                        var target = doc.GetElement(new ElementId(targetId));
-#else
-                        var target = doc.GetElement(new ElementId((int)targetId));
-#endif
+                        var target = doc.GetElement(RevitElementIdExtensions.FromLong(targetId));
                         if (target == null) continue;
 
                         int transferred = 0;
@@ -112,7 +101,7 @@ namespace RevitMCPCommandSet.Services.DataExtraction
                             try
                             {
                                 if (!DryRun)
-                                    SetParameterValue(targetParam, storageType, value);
+                                    ParameterValueUtils.SetParameterValue(targetParam, storageType, value);
 
                                 transferred++;
                                 paramResults.Add(new { parameterName = paramName, success = true, value = value?.ToString() ?? "" });
@@ -163,46 +152,6 @@ namespace RevitMCPCommandSet.Services.DataExtraction
             {
                 TaskCompleted = true;
                 _resetEvent.Set();
-            }
-        }
-
-        private object GetParameterValue(Parameter p)
-        {
-            switch (p.StorageType)
-            {
-                case StorageType.String: return p.AsString();
-                case StorageType.Integer: return p.AsInteger();
-                case StorageType.Double: return p.AsDouble();
-                case StorageType.ElementId:
-#if REVIT2024_OR_GREATER
-                    return p.AsElementId().Value;
-#else
-                    return p.AsElementId().IntegerValue;
-#endif
-                default: return null;
-            }
-        }
-
-        private void SetParameterValue(Parameter p, StorageType type, object value)
-        {
-            switch (type)
-            {
-                case StorageType.String:
-                    p.Set(value as string ?? "");
-                    break;
-                case StorageType.Integer:
-                    p.Set((int)value);
-                    break;
-                case StorageType.Double:
-                    p.Set((double)value);
-                    break;
-                case StorageType.ElementId:
-#if REVIT2024_OR_GREATER
-                    p.Set(new ElementId((long)value));
-#else
-                    p.Set(new ElementId(Convert.ToInt32(value)));
-#endif
-                    break;
             }
         }
 

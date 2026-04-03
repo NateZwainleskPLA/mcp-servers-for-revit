@@ -1,7 +1,9 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using RevitMCPCommandSet.Models.Common;
+using RevitMCPCommandSet.Utils;
 using RevitMCPSDK.API.Interfaces;
+using RevitElementIdExtensions = RevitMCPCommandSet.Utils.ElementIdExtensions;
 
 namespace RevitMCPCommandSet.Services
 {
@@ -27,7 +29,7 @@ namespace RevitMCPCommandSet.Services
             {
                 var doc = app.ActiveUIDocument.Document;
 
-                var sourceElement = doc.GetElement(ToElementId(SourceElementId));
+                var sourceElement = doc.GetElement(RevitElementIdExtensions.FromLong(SourceElementId));
                 if (sourceElement == null)
                 {
                     Result = new AIResult<object> { Success = false, Message = "Source element not found" };
@@ -52,7 +54,7 @@ namespace RevitMCPCommandSet.Services
 
                     foreach (var targetId in TargetElementIds)
                     {
-                        var targetElement = doc.GetElement(ToElementId(targetId));
+                        var targetElement = doc.GetElement(RevitElementIdExtensions.FromLong(targetId));
                         if (targetElement == null) continue;
 
                         int copiedCount = 0;
@@ -122,17 +124,10 @@ namespace RevitMCPCommandSet.Services
                     if (string.IsNullOrEmpty(name)) continue;
                     if (filterByNames && !ParameterNames.Contains(name, StringComparer.OrdinalIgnoreCase)) continue;
 
-                    object value = param.StorageType switch
+                    if (ParameterValueUtils.TryGetWritableParameterValue(param, out var value))
                     {
-                        StorageType.String => param.AsString(),
-                        StorageType.Integer => param.AsInteger(),
-                        StorageType.Double => param.AsDouble(),
-                        StorageType.ElementId => param.AsElementId(),
-                        _ => null
-                    };
-
-                    if (value != null)
-                        values[name] = (param.StorageType, value);
+                        values[name] = value;
+                    }
                 }
             }
 
@@ -154,30 +149,7 @@ namespace RevitMCPCommandSet.Services
 
         private void CopyParameterValue(Parameter target, (StorageType Type, object Value) source)
         {
-            switch (source.Type)
-            {
-                case StorageType.String:
-                    target.Set((string)source.Value ?? "");
-                    break;
-                case StorageType.Integer:
-                    target.Set((int)source.Value);
-                    break;
-                case StorageType.Double:
-                    target.Set((double)source.Value);
-                    break;
-                case StorageType.ElementId:
-                    target.Set((ElementId)source.Value);
-                    break;
-            }
-        }
-
-        private ElementId ToElementId(long id)
-        {
-#if REVIT2024_OR_GREATER
-            return new ElementId(id);
-#else
-            return new ElementId((int)id);
-#endif
+            ParameterValueUtils.SetParameterValue(target, source.Type, source.Value);
         }
 
         public string GetName() => "Match Element Properties";
