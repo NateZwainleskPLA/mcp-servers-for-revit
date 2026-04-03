@@ -636,20 +636,26 @@ function Set-ClaudeDesktopConfig {
         $config | Add-Member -NotePropertyName 'mcpServers' -NotePropertyValue ([PSCustomObject]@{})
     }
 
-    $existing = $config.mcpServers.'revit-mcp'
+    $serverKey = 'mcp-server-for-revit'
+    $legacyServerKey = 'revit-mcp'
+    $existing = $config.mcpServers.$serverKey
     if ($existing -and $existing.command -eq $ServerCommand -and (@($existing.args) -join "`n") -eq ($ServerArgs -join "`n")) {
-        Write-Ok "Claude Desktop - revit-mcp already configured"
+        Write-Ok "Claude Desktop - $serverKey already configured"
         return
     }
 
-    # Add or update revit-mcp server
-    $config.mcpServers | Add-Member -Force -NotePropertyName 'revit-mcp' -NotePropertyValue ([PSCustomObject]@{
+    if ($config.mcpServers.PSObject.Properties.Name -contains $legacyServerKey) {
+        $config.mcpServers.PSObject.Properties.Remove($legacyServerKey)
+    }
+
+    # Add or update mcp-server-for-revit server
+    $config.mcpServers | Add-Member -Force -NotePropertyName $serverKey -NotePropertyValue ([PSCustomObject]@{
         command = $ServerCommand
         args = $ServerArgs
     })
 
     $config | ConvertTo-Json -Depth 10 | Set-Content $configPath -Encoding UTF8
-    Write-Ok "Claude Desktop - revit-mcp server configured"
+    Write-Ok "Claude Desktop - $serverKey server configured"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
