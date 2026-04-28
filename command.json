@@ -69,6 +69,11 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "move_elements",
+      "description": "Move or copy elements by a translation vector",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "ai_element_filter",
       "description": "AI element filter for querying elements by criteria",
       "assemblyPath": "RevitMCPCommandSet.dll"

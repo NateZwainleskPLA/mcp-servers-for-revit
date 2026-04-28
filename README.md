@@ -130,6 +130,7 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `create_dimensions` | Create dimension annotations in the current view |
 | `create_structural_framing_system` | Create a structural beam framing system |
 | `delete_element` | Delete elements by ID |
+| `move_elements` | Move or copy elements by a translation vector |
 | `operate_element` | Operate on elements (select, setColor, hide, etc.) |
 | `color_elements` | Color elements based on a parameter value |
 | `tag_all_walls` | Tag all walls in the current view |
