@@ -117,6 +117,7 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `get_current_view_elements` | Get elements from the current active view |
 | `get_available_family_types` | Get available family types in current project |
 | `get_selected_elements` | Get currently selected elements |
+| `get_datums` | Get grids, levels, and reference planes |
 | `inspect_elements` | Inspect elements by ID or selection with optional geometry and parameter details |
 | `get_material_quantities` | Calculate material quantities and takeoffs |
 | `ai_element_filter` | Intelligent element querying tool for AI assistants |
