@@ -51,6 +51,7 @@ Restart Claude Desktop. When you see the hammer icon, the MCP server is connecte
 | `create_level` | Create levels at specified elevations |
 | `create_room` | Create and place rooms at specified locations |
 | `create_dimensions` | Create dimension annotations in the current view |
+| `create_detail_lines` | Create detail lines in the active view from point pairs |
 | `create_structural_framing_system` | Create a structural beam framing system |
 | `delete_element` | Delete elements by ID |
 | `move_elements` | Move or copy elements by a translation vector |
