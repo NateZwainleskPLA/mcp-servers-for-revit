@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SettingsWindowTitle" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="RibbonPanelTitle" xml:space="preserve">
+    <value>Revit MCP Plugin</value>
+  </data>
+  <data name="RibbonSwitchButtonText" xml:space="preserve">
+    <value>Revit MCP&#x0D;&#x0A;Switch</value>
+  </data>
+  <data name="RibbonSwitchButtonToolTip" xml:space="preserve">
+    <value>Open or close the MCP server</value>
+  </data>
+  <data name="RibbonSettingsButtonText" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="RibbonSettingsButtonToolTip" xml:space="preserve">
+    <value>MCP settings</value>
+  </data>
+  <data name="CommandSetNavItem" xml:space="preserve">
+    <value>Command Set</value>
+  </data>
+  <data name="CommandSetSettingsTitle" xml:space="preserve">
+    <value>Command Set Settings</value>
+  </data>
+  <data name="CommandSetSettingsSubtitle" xml:space="preserve">
+    <value>Select the commands you want to enable</value>
+  </data>
+  <data name="AvailableCommandSetsHeader" xml:space="preserve">
+    <value>Available Command Sets</value>
+  </data>
+  <data name="FeatureListHeader" xml:space="preserve">
+    <value>Feature List</value>
+  </data>
+  <data name="CommandListHeader" xml:space="preserve">
+    <value>Command List</value>
+  </data>
+  <data name="CommandListForCommandSet" xml:space="preserve">
+    <value>{0} - Command List</value>
+  </data>
+  <data name="EnableColumnHeader" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="NameColumnHeader" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="DescriptionColumnHeader" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="NoSelectionMessage" xml:space="preserve">
+    <value>Please select a command set from the left to view its commands</value>
+  </data>
+  <data name="OpenCommandSetFolderButton" xml:space="preserve">
+    <value>Open Command Set Folder</value>
+  </data>
+  <data name="RefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="SelectAllButton" xml:space="preserve">
+    <value>Select All</value>
+  </data>
+  <data name="DeselectAllButton" xml:space="preserve">
+    <value>Deselect All</value>
+  </data>
+  <data name="SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="NoCommandSetsFoundTitle" xml:space="preserve">
+    <value>No Command Sets</value>
+  </data>
+  <data name="NoCommandSetsFoundMessage" xml:space="preserve">
+    <value>No command sets found. Please check if the Commands folder exists and contains valid command sets.</value>
+  </data>
+  <data name="ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="ErrorLoadingCommandSets" xml:space="preserve">
+    <value>Error loading command sets: {0}</value>
+  </data>
+  <data name="SettingsSavedTitle" xml:space="preserve">
+    <value>Settings Saved</value>
+  </data>
+  <data name="SettingsSavedMessage" xml:space="preserve">
+    <value>Command set settings successfully saved!&#x0D;&#x0A;&#x0D;&#x0A;Enabled {0} commands:&#x0D;&#x0A;{1}</value>
+  </data>
+  <data name="ErrorSavingSettings" xml:space="preserve">
+    <value>Error saving settings: {0}</value>
+  </data>
+  <data name="ErrorOpeningCommandsFolder" xml:space="preserve">
+    <value>Error opening Commands folder: {0}</value>
+  </data>
+  <data name="Unspecified" xml:space="preserve">
+    <value>Unspecified</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+</root>

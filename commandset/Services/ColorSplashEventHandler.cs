@@ -309,7 +309,7 @@ namespace RevitMCPCommandSet.Services
 
                         // 尝试通过参数名称识别布尔参数
                         string paramName = parameter.Definition.Name.ToLower();
-                        if (paramName.Contains("是否") ||
+                        if (paramName.Contains("\u662F\u5426") ||
                             paramName.Contains("yes/no") ||
                             paramName.Contains("true/false") ||
                             paramName.Contains("visible") ||
@@ -331,7 +331,7 @@ namespace RevitMCPCommandSet.Services
                         {
                             string valueString = parameter.AsValueString();
                             if (!string.IsNullOrEmpty(valueString) &&
-                                (valueString == "是" || valueString == "否" ||
+                                (valueString == "\u662F" || valueString == "\u5426" ||
                                  valueString == "Yes" || valueString == "No"))
                             {
                                 return parameter.AsInteger() == 1 ? "True" : "False";

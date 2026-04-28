@@ -64,7 +64,7 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
                 }
                 else
                 {
-                    using (var transaction = new Transaction(doc, "执行AI代码"))
+                    using (var transaction = new Transaction(doc, "Execute AI Code"))
                     {
                         transaction.Start();
 
@@ -84,7 +84,7 @@ namespace RevitMCPCommandSet.Commands.ExecuteDynamicCode
             catch (Exception ex)
             {
                 ResultInfo.Success = false;
-                ResultInfo.ErrorMessage = $"执行失败: {ex.Message}";
+                ResultInfo.ErrorMessage = $"Execution failed: {ex.Message}";
             }
             finally
             {
@@ -142,7 +142,7 @@ namespace AIGeneratedCode
                     var errors = string.Join("\n", result.Diagnostics
                         .Where(d => d.Severity == DiagnosticSeverity.Error)
                         .Select(d => $"Line {d.Location.GetLineSpan().StartLinePosition.Line}: {d.GetMessage()}"));
-                    throw new Exception($"代码编译错误:\n{errors}");
+                    throw new Exception($"Code compilation errors:\n{errors}");
                 }
 
                 // 反射调用执行方法
@@ -157,7 +157,7 @@ namespace AIGeneratedCode
 
         public string GetName()
         {
-            return "执行AI代码";
+            return "Execute AI Code";
         }
     }
 

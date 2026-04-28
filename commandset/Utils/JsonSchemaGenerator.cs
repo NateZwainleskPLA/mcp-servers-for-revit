@@ -142,7 +142,7 @@ namespace RevitMCPCommandSet.Utils
         }
 
         /// <summary>
-        /// 为包含 "required" 属性的对象递归添加 "additionalProperties": false
+        /// Recursively adds additionalProperties=false to objects that contain required properties.
         /// </summary>
         private static void AddAdditionalPropertiesFalse(JToken token)
         {

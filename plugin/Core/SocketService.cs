@@ -64,7 +64,7 @@ namespace revit_mcp_plugin.Core
             // Get the current Revit version.
             var versionAdapter = new RevitMCPSDK.API.Utils.RevitVersionAdapter(_uiApp.Application);
             string currentVersion = versionAdapter.GetRevitVersion();
-            _logger.Info("当前 Revit 版本: {0}\nCurrent Revit version: {0}", currentVersion);
+            _logger.Info("Current Revit version: {0}", currentVersion);
 
 
 
@@ -198,7 +198,7 @@ namespace revit_mcp_plugin.Core
                     }
 
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    System.Diagnostics.Trace.WriteLine($"收到消息: {message}\nReceived message: {message}");
+                    System.Diagnostics.Trace.WriteLine($"Received message: {message}");
 
                     string response = ProcessJsonRPCRequest(message);
 

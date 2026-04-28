@@ -23,7 +23,7 @@ namespace RevitMCPCommandSet.Services
         /// 执行结果（传出数据）
         /// </summary>
         public AIResult<List<int>> Result { get; private set; }
-        public string _floorName = "常规 - ";
+        public string _floorName = "Generic - ";
         public bool _structural = true;
         private List<string> _warnings = new List<string>();
 
@@ -184,7 +184,7 @@ namespace RevitMCPCommandSet.Services
 
                     // Step3 批量创建楼板
                     Floor floor = null;
-                    using (Transaction transaction = new Transaction(doc, "创建面状构件"))
+                    using (Transaction transaction = new Transaction(doc, "Create Surface-Based Element"))
                     {
                         transaction.Start();
 
@@ -282,9 +282,9 @@ namespace RevitMCPCommandSet.Services
                 Result = new AIResult<List<int>>
                 {
                     Success = false,
-                    Message = $"创建面状构件时出错: {ex.Message}",
+                    Message = $"Error creating surface-based element: {ex.Message}",
                 };
-                TaskDialog.Show("错误", $"创建面状构件时出错: {ex.Message}");
+                TaskDialog.Show("Error", $"Error creating surface-based element: {ex.Message}");
             }
             finally
             {
@@ -308,7 +308,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string GetName()
         {
-            return "创建面状构件";
+            return "Create Surface-Based Element";
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace RevitMCPCommandSet.Services
                                      .OfClass(typeof(FloorType))                    // 仅获取FloorType类
                                      .OfCategory(BuiltInCategory.OST_Floors)        // 仅获取楼板类别
                                      .Cast<FloorType>()                            // 转换为FloorType类型
-                                     .FirstOrDefault(w => w.Name.Contains("常规"));
+                                     .FirstOrDefault(w => w.Name.Contains("Generic") || w.Name.Contains("\u5E38\u89C4"));
             if (existingType != null)
             {
                 baseFloorType = existingType = new FilteredElementCollector(doc)

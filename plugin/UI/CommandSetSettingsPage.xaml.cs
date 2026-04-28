@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using revit_mcp_plugin.Configuration;
+using revit_mcp_plugin.Localization;
 using revit_mcp_plugin.Utils;
 using System;
 using System.Collections.Generic;
@@ -189,13 +190,13 @@ namespace revit_mcp_plugin.UI
                 // If no command sets found, display a message
                 if (commandSets.Count == 0)
                 {
-                    MessageBox.Show("No command sets found. Please check if the Commands folder exists and contains valid command sets.",
-                                  "No Command Sets", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(PluginStrings.NoCommandSetsFoundMessage,
+                                  PluginStrings.NoCommandSetsFoundTitle, MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading command sets: {ex.Message}", "Error",
+                MessageBox.Show(string.Format(PluginStrings.ErrorLoadingCommandSets, ex.Message), PluginStrings.ErrorTitle,
                                 MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -207,7 +208,7 @@ namespace revit_mcp_plugin.UI
             if (selectedCommandSet != null)
             {
                 NoSelectionTextBlock.Visibility = Visibility.Collapsed;
-                FeaturesHeaderTextBlock.Text = $"{selectedCommandSet.Name} - Command List";
+                FeaturesHeaderTextBlock.Text = string.Format(PluginStrings.CommandListForCommandSet, selectedCommandSet.Name);
                 // Load commands from selected command set
                 foreach (var command in selectedCommandSet.Commands)
                 {
@@ -217,7 +218,7 @@ namespace revit_mcp_plugin.UI
             else
             {
                 NoSelectionTextBlock.Visibility = Visibility.Visible;
-                FeaturesHeaderTextBlock.Text = "Command List";
+                FeaturesHeaderTextBlock.Text = PluginStrings.CommandListHeader;
             }
         }
 
@@ -286,11 +287,11 @@ namespace revit_mcp_plugin.UI
                 // 创建新的registry对象
                 CommandRegistryJson registry = new CommandRegistryJson();
                 registry.Commands = new List<CommandConfig>();
-                // 收集所有"已启用"的命令
+                // Collect all enabled commands
                 foreach (var commandSet in commandSets)
                 {
                     // 尝试从command.json中获取开发者信息
-                    var commandSetDeveloper = new DeveloperInfo { Name = "Unspecified", Email = "Unspecified" };
+                    var commandSetDeveloper = new DeveloperInfo { Name = PluginStrings.Unspecified, Email = PluginStrings.Unspecified };
                     string commandJsonPath = Path.Combine(PathManager.GetCommandsDirectoryPath(),
                         commandSet.Name, "command.json");
                     if (File.Exists(commandJsonPath))
@@ -345,7 +346,7 @@ namespace revit_mcp_plugin.UI
                 foreach (var command in registry.Commands)
                 {
                     string commandSetName = commandSets
-                        .FirstOrDefault(cs => cs.Commands.Any(c => c.CommandName == command.CommandName))?.Name ?? "Unknown";
+                        .FirstOrDefault(cs => cs.Commands.Any(c => c.CommandName == command.CommandName))?.Name ?? PluginStrings.Unknown;
                     string versions = command.SupportedRevitVersions != null && command.SupportedRevitVersions.Any()
                         ? $" (Revit {string.Join(", ", command.SupportedRevitVersions)})"
                         : "";
@@ -354,12 +355,12 @@ namespace revit_mcp_plugin.UI
                 // 序列化并保存到文件
                 string json = JsonConvert.SerializeObject(registry, Formatting.Indented);
                 File.WriteAllText(registryFilePath, json);
-                MessageBox.Show($"Command set settings successfully saved!\n\nEnabled {enabledCount} commands:\n{enabledFeaturesText}",
-                              "Settings Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(string.Format(PluginStrings.SettingsSavedMessage, enabledCount, enabledFeaturesText),
+                              PluginStrings.SettingsSavedTitle, MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving settings: {ex.Message}", "Error",
+                MessageBox.Show(string.Format(PluginStrings.ErrorSavingSettings, ex.Message), PluginStrings.ErrorTitle,
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -372,7 +373,7 @@ namespace revit_mcp_plugin.UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error opening Commands folder: {ex.Message}", "Error",
+                MessageBox.Show(string.Format(PluginStrings.ErrorOpeningCommandsFolder, ex.Message), PluginStrings.ErrorTitle,
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
