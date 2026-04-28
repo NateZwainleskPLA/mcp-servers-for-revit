@@ -201,12 +201,38 @@ public static class GeometryUtils
     /// <returns>Intersection point or null if none</returns>
     public static XYZ FindIntersection(Line line1, Line line2)
     {
-        // Implement algorithm to calculate intersection
-        // Simple method: use Revit API to find intersection
-        var results = new IntersectionResultArray();
-        if (line1.Intersect(line2, out results) == SetComparisonResult.Overlap && results.Size > 0)
-            return results.get_Item(0).XYZPoint;
-        return null;
+        const double tolerance = 1e-9;
+        var p1 = line1.Origin;
+        var p2 = line2.Origin;
+        var d1 = line1.Direction;
+        var d2 = line2.Direction;
+        var cross = d1.CrossProduct(d2);
+        var denominator = cross.DotProduct(cross);
+
+        if (denominator < tolerance)
+            return null;
+
+        var delta = p2 - p1;
+        var t = delta.CrossProduct(d2).DotProduct(cross) / denominator;
+        var u = delta.CrossProduct(d1).DotProduct(cross) / denominator;
+        var point1 = p1 + d1.Multiply(t);
+        var point2 = p2 + d2.Multiply(u);
+
+        if (point1.DistanceTo(point2) > tolerance)
+            return null;
+
+        if (!IsParameterOnLine(line1, t, tolerance) || !IsParameterOnLine(line2, u, tolerance))
+            return null;
+
+        return point1;
+    }
+
+    private static bool IsParameterOnLine(Line line, double parameter, double tolerance)
+    {
+        if (!line.IsBound)
+            return true;
+
+        return parameter >= -tolerance && parameter <= line.Length + tolerance;
     }
 
     /// <summary>
