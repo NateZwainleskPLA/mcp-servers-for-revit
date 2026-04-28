@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using revit_mcp_plugin.Configuration;
+using revit_mcp_plugin.Core;
 using revit_mcp_plugin.Utils;
 using System;
 using System.Collections.Generic;
@@ -354,6 +355,12 @@ namespace revit_mcp_plugin.UI
                 // 序列化并保存到文件
                 string json = JsonConvert.SerializeObject(registry, Formatting.Indented);
                 File.WriteAllText(registryFilePath, json);
+
+                if (SocketService.Instance.IsRunning)
+                {
+                    SocketService.Instance.ReloadCommands();
+                }
+
                 MessageBox.Show($"Command set settings successfully saved!\n\nEnabled {enabledCount} commands:\n{enabledFeaturesText}",
                               "Settings Saved", MessageBoxButton.OK, MessageBoxImage.Information);
             }

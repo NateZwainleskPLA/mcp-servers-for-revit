@@ -5,6 +5,7 @@ using revit_mcp_plugin.Configuration;
 using revit_mcp_plugin.Utils;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace revit_mcp_plugin.Core
@@ -50,6 +51,8 @@ namespace revit_mcp_plugin.Core
             _logger.Info("开始加载命令\nStart loading command.");
             string currentVersion = _versionAdapter.GetRevitVersion();
             _logger.Info("当前 Revit 版本: {0}\nCurrent Revit version: {0}", currentVersion);
+            int enabledCommandCount = 0;
+            int loadedCommandCount = 0;
 
             // 从配置加载外部命令
             // Load external commands from the configuration file.
@@ -62,6 +65,8 @@ namespace revit_mcp_plugin.Core
                         _logger.Info("跳过禁用的命令: {0}\nSkipping disabled command: {0}", commandConfig.CommandName);
                         continue;
                     }
+
+                    enabledCommandCount++;
 
                     // 检查版本兼容性
                     // Check Revit version compatibility.
@@ -82,7 +87,10 @@ namespace revit_mcp_plugin.Core
 
                     // 加载外部命令程序集
                     // Load external command assembly.
-                    LoadCommandFromAssembly(commandConfig);
+                    if (LoadCommandFromAssembly(commandConfig))
+                    {
+                        loadedCommandCount++;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -90,7 +98,10 @@ namespace revit_mcp_plugin.Core
                 }
             }
 
-            _logger.Info("命令加载完成\nCommand loading complete.");
+            _logger.Info(
+                "命令加载完成。已加载 {0}/{1} 个启用命令\nCommand loading complete. Loaded {0}/{1} enabled commands.",
+                loadedCommandCount,
+                enabledCommandCount);
         }
 
         /// <summary>
@@ -98,7 +109,7 @@ namespace revit_mcp_plugin.Core
         /// Loads specific commands in specific assemblies.
         /// </summary>
         /// <param name="config">Configuration class describing the command.</param>
-        private void LoadCommandFromAssembly(CommandConfig config)
+        private bool LoadCommandFromAssembly(CommandConfig config)
         {
             try
             {
@@ -116,16 +127,36 @@ namespace revit_mcp_plugin.Core
                 if (!File.Exists(assemblyPath))
                 {
                     _logger.Error("命令程序集不存在: {0}\nCommand assembly does not exist: {0}", assemblyPath);
-                    return;
+                    return false;
                 }
 
                 // 加载程序集
                 // Load assembly.
                 Assembly assembly = Assembly.LoadFrom(assemblyPath);
+                Type[] assemblyTypes;
+
+                try
+                {
+                    assemblyTypes = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    assemblyTypes = ex.Types.Where(t => t != null).ToArray();
+
+                    foreach (var loaderException in ex.LoaderExceptions.Where(e => e != null))
+                    {
+                        _logger.Error(
+                            "加载程序集类型失败 [{0}]: {1}\nFailed to load assembly types [{0}]: {1}",
+                            Path.GetFileName(assemblyPath),
+                            loaderException.Message);
+                    }
+                }
+
+                bool commandLoaded = false;
 
                 // 查找实现 IRevitCommand 接口的类型
                 // Find types that implement the IRevitCommand interface.
-                foreach (Type type in assembly.GetTypes())
+                foreach (Type type in assemblyTypes)
                 {
                     if (typeof(RevitMCPSDK.API.Interfaces.IRevitCommand).IsAssignableFrom(type) &&
                         !type.IsInterface &&
@@ -168,8 +199,9 @@ namespace revit_mcp_plugin.Core
                             if (command.CommandName == config.CommandName)
                             {
                                 _commandRegistry.RegisterCommand(command);
-                                _logger.Info("创建命令实例失败 [{0}]: {1}\nFailed to create command instance [{0}]: {1}",
+                                _logger.Info("已加载命令 [{0}]: {1}\nLoaded command [{0}]: {1}",
                                     command.CommandName, Path.GetFileName(assemblyPath));
+                                commandLoaded = true;
                                 break; // 找到匹配的命令后退出循环 - Exit the loop after finding a matching command.
                             }
                         }
@@ -179,10 +211,21 @@ namespace revit_mcp_plugin.Core
                         }
                     }
                 }
+
+                if (!commandLoaded)
+                {
+                    _logger.Warning(
+                        "未在程序集 {0} 中找到匹配命令: {1}\nNo matching command found in assembly {0}: {1}",
+                        Path.GetFileName(assemblyPath),
+                        config.CommandName);
+                }
+
+                return commandLoaded;
             }
             catch (Exception ex)
             {
                 _logger.Error("加载命令程序集失败: {0}\nFailed to load command assembly: {0}", ex.Message);
+                return false;
             }
         }
     }

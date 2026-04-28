@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -22,7 +23,8 @@ namespace revit_mcp_plugin.Core
         private bool _isRunning;
         private int _port = 8080;
         private UIApplication _uiApp;
-        private ICommandRegistry _commandRegistry;
+        private RevitCommandRegistry _commandRegistry;
+        private readonly object _commandRegistryLock = new object();
         private ILogger _logger;
         private CommandExecutor _commandExecutor;
 
@@ -72,12 +74,6 @@ namespace revit_mcp_plugin.Core
             // Create CommandExecutor
             _commandExecutor = new CommandExecutor(_commandRegistry, _logger);
 
-            // 加载配置并注册命令
-            // Load configuration and register commands.
-            ConfigurationManager configManager = new ConfigurationManager(_logger);
-            configManager.LoadConfiguration();
-            
-
             //// 从配置中读取服务端口
             //// Read the service port from the configuration.
             //if (configManager.Config.Settings.Port > 0)
@@ -86,13 +82,50 @@ namespace revit_mcp_plugin.Core
             //}
             _port = 8080; // 固定端口号 - Hard-wired port number.
 
-            // 加载命令
-            // Load command.
-            CommandManager commandManager = new CommandManager(
-                _commandRegistry, _logger, configManager, _uiApp);
-            commandManager.LoadCommands();
+            ReloadCommands();
 
             _logger.Info($"Socket service initialized on port {_port}");
+        }
+
+        public void ReloadCommands()
+        {
+            if (_uiApp == null)
+            {
+                _logger.Warning("无法重新加载命令，UIApplication 尚未初始化\nCannot reload commands because UIApplication has not been initialized.");
+                return;
+            }
+
+            try
+            {
+                // 加载配置并注册命令
+                // Load configuration and register commands.
+                ConfigurationManager configManager = new ConfigurationManager(_logger);
+                configManager.LoadConfiguration();
+
+                var newCommandRegistry = new RevitCommandRegistry();
+                CommandManager commandManager = new CommandManager(
+                    newCommandRegistry, _logger, configManager, _uiApp);
+                commandManager.LoadCommands();
+
+                int loadedCommandCount = newCommandRegistry.GetRegisteredCommands().Count();
+                if (loadedCommandCount == 0)
+                {
+                    _logger.Error("重新加载命令失败: 未加载任何命令，保留当前命令注册表\nFailed to reload commands: no commands were loaded, keeping the current command registry.");
+                    return;
+                }
+
+                lock (_commandRegistryLock)
+                {
+                    _commandRegistry = newCommandRegistry;
+                    _commandExecutor = new CommandExecutor(_commandRegistry, _logger);
+                }
+
+                _logger.Info("命令注册表已重新加载\nCommand registry reloaded.");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("重新加载命令失败: {0}\nFailed to reload commands: {0}", ex.Message);
+            }
         }
 
         public void Start()
@@ -241,7 +274,13 @@ namespace revit_mcp_plugin.Core
 
                 // 查找命令
                 // Search for the command in the registry.
-                if (!_commandRegistry.TryGetCommand(request.Method, out var command))
+                IRevitCommand command;
+                lock (_commandRegistryLock)
+                {
+                    _commandRegistry.TryGetCommand(request.Method, out command);
+                }
+
+                if (command == null)
                 {
                     return CreateErrorResponse(request.Id, JsonRPCErrorCodes.MethodNotFound,
                         $"Method '{request.Method}' not found");
