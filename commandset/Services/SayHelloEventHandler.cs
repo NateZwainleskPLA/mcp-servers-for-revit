@@ -17,14 +17,10 @@ namespace RevitMCPCommandSet.Services
 
         public void Execute(UIApplication app)
         {
-            try
-            {
-                TaskDialog.Show("Revit MCP", Message);
-            }
-            finally
-            {
-                _resetEvent.Set();
-            }
+            // Signal completion before showing the modal dialog so the MCP caller
+            // does not time out waiting for the user to dismiss it.
+            _resetEvent.Set();
+            TaskDialog.Show("Revit MCP", Message);
         }
 
         public string GetName()
