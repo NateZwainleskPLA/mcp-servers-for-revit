@@ -34,6 +34,11 @@
       "assemblyPath": "RevitMCPCommandSet.dll"
     },
     {
+      "commandName": "inspect_elements",
+      "description": "Inspect elements by ID or current selection with optional geometry and parameter details",
+      "assemblyPath": "RevitMCPCommandSet.dll"
+    },
+    {
       "commandName": "create_point_based_element",
       "description": "Create point-based elements like furniture",
       "assemblyPath": "RevitMCPCommandSet.dll"
