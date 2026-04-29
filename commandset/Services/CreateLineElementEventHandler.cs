@@ -26,8 +26,8 @@ namespace RevitMCPCommandSet.Services
         public AIResult<List<int>> Result { get; private set; }
         private List<string> _warnings = new List<string>();
 
-        public string _wallName = "常规 - ";
-        public string _ductName = "矩形风管 - ";
+        public string _wallName = "Generic - ";
+        public string _ductName = "Rectangular Duct - ";
 
         /// <summary>
         /// 设置创建的参数
@@ -166,7 +166,7 @@ namespace RevitMCPCommandSet.Services
                     }
 
                     // Step3 调用通用方法创建族实例
-                    using (Transaction transaction = new Transaction(doc, "创建点状构件"))
+                    using (Transaction transaction = new Transaction(doc, "Create Line-Based Element"))
                     {
                         transaction.Start();
                         switch (builtInCategory)
@@ -251,9 +251,9 @@ namespace RevitMCPCommandSet.Services
                 Result = new AIResult<List<int>>
                 {
                     Success = false,
-                    Message = $"创建线状构件时出错: {ex.Message}",
+                    Message = $"Error creating line-based element: {ex.Message}",
                 };
-                TaskDialog.Show("错误", $"创建线状构件时出错: {ex.Message}");
+                TaskDialog.Show("Error", $"Error creating line-based element: {ex.Message}");
             }
             finally
             {
@@ -277,7 +277,7 @@ namespace RevitMCPCommandSet.Services
         /// </summary>
         public string GetName()
         {
-            return "创建线状构件";
+            return "Create Line-Based Element";
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace RevitMCPCommandSet.Services
             WallType baseWallType = new FilteredElementCollector(doc)
                                     .OfClass(typeof(WallType))
                                     .Cast<WallType>()
-                                    .FirstOrDefault(w => w.Name.Contains("常规")); ;
+                                    .FirstOrDefault(w => w.Name.Contains("Generic") || w.Name.Contains("\u5E38\u89C4")); ;
             if (baseWallType == null)
             {
                 baseWallType = new FilteredElementCollector(doc)
@@ -312,7 +312,7 @@ namespace RevitMCPCommandSet.Services
             }
 
             if (baseWallType == null)
-                throw new InvalidOperationException("未找到可用的基础墙类型");
+                throw new InvalidOperationException("No available base wall type was found");
 
             // 复制墙体类型
             WallType newWallType = null;
@@ -369,7 +369,7 @@ namespace RevitMCPCommandSet.Services
                                     .FirstOrDefault(d => d.Shape == ConnectorProfileType.Rectangular);
 
             if (baseDuctType == null)
-                throw new InvalidOperationException("未找到可用的基础矩形风管类型");
+                throw new InvalidOperationException("No available base rectangular duct type was found");
 
             // 复制风管类型
             DuctType newDuctType = baseDuctType.Duplicate(typeName) as DuctType;

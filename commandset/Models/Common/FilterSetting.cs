@@ -19,7 +19,7 @@ namespace RevitMCPCommandSet.Models.Common
         [JsonProperty("filterCategory")]
         public string FilterCategory { get; set; } = null;
         /// <summary>
-        /// 获取或设置要过滤的 Revit 元素类型名称（如"Wall"或"Autodesk.Revit.DB.Wall"）。
+        /// Gets or sets the Revit element type name used for filtering, such as Wall or Autodesk.Revit.DB.Wall.
         /// 如果为 null 或空，则不进行类型过滤。
         /// </summary>
         [JsonProperty("filterElementType")]
@@ -75,7 +75,7 @@ namespace RevitMCPCommandSet.Models.Common
             // 检查是否至少选择了一种元素种类
             if (!IncludeTypes && !IncludeInstances)
             {
-                errorMessage = "过滤设置无效: 必须至少包含元素类型或元素实例之一";
+                errorMessage = "Invalid filter settings: include at least one of element types or element instances.";
                 return false;
             }
 
@@ -84,7 +84,7 @@ namespace RevitMCPCommandSet.Models.Common
                 string.IsNullOrWhiteSpace(FilterElementType) &&
                 FilterFamilySymbolId <= 0)
             {
-                errorMessage = "过滤设置无效: 必须至少指定一个过滤条件(类别、元素类型或族类型)";
+                errorMessage = "Invalid filter settings: specify at least one filter condition (category, element type, or family type).";
                 return false;
             }
 
@@ -93,12 +93,12 @@ namespace RevitMCPCommandSet.Models.Common
             {
                 List<string> invalidFilters = new List<string>();
                 if (FilterFamilySymbolId > 0)
-                    invalidFilters.Add("族实例过滤");
+                    invalidFilters.Add("family instance filtering");
                 if (FilterVisibleInCurrentView)
-                    invalidFilters.Add("视图可见性过滤");
+                    invalidFilters.Add("current-view visibility filtering");
                 if (invalidFilters.Count > 0)
                 {
-                    errorMessage = $"当仅过滤类型元素时，以下过滤器不适用: {string.Join(", ", invalidFilters)}";
+                    errorMessage = $"The following filters do not apply when filtering only element types: {string.Join(", ", invalidFilters)}.";
                     return false;
                 }
             }
@@ -110,13 +110,13 @@ namespace RevitMCPCommandSet.Models.Common
                     BoundingBoxMin.Y > BoundingBoxMax.Y ||
                     BoundingBoxMin.Z > BoundingBoxMax.Z)
                 {
-                    errorMessage = "空间范围过滤器设置无效: 最小点坐标必须小于或等于最大点坐标";
+                    errorMessage = "Invalid spatial filter settings: minimum point coordinates must be less than or equal to maximum point coordinates.";
                     return false;
                 }
             }
             else if (BoundingBoxMin != null || BoundingBoxMax != null)
             {
-                errorMessage = "空间范围过滤器设置无效: 必须同时设置最小点和最大点坐标";
+                errorMessage = "Invalid spatial filter settings: minimum and maximum point coordinates must both be set.";
                 return false;
             }
             return true;

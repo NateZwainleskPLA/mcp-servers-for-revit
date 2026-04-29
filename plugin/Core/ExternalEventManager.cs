@@ -47,7 +47,7 @@ namespace revit_mcp_plugin.Core
         public ExternalEvent GetOrCreateEvent(IWaitableExternalEventHandler handler, string key)
         {
             if (!_isInitialized)
-                throw new InvalidOperationException($"{nameof(ExternalEventManager)}尚未初始化\n{nameof(ExternalEventManager)}has not been initialized.");
+                throw new InvalidOperationException($"{nameof(ExternalEventManager)} has not been initialized.");
 
             // 如果存在且处理器匹配，直接返回
             // If it exists and the processor matches, return directly.
@@ -70,7 +70,7 @@ namespace revit_mcp_plugin.Core
             );
 
             if (externalEvent == null)
-                throw new InvalidOperationException("无法创建外部事件\nUnable to create external events.");
+                throw new InvalidOperationException("Unable to create external events.");
 
             // 存储事件
             // Storage events.
@@ -80,7 +80,7 @@ namespace revit_mcp_plugin.Core
                 Handler = handler
             };
 
-            _logger.Info($"为 {key} 创建了新的外部事件\nCreated a new external event for key {key}.");
+            _logger.Info($"Created a new external event for key {key}.");
 
             return externalEvent;
         }

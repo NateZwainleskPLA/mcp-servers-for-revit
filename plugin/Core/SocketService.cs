@@ -66,7 +66,7 @@ namespace revit_mcp_plugin.Core
             // Get the current Revit version.
             var versionAdapter = new RevitMCPSDK.API.Utils.RevitVersionAdapter(_uiApp.Application);
             string currentVersion = versionAdapter.GetRevitVersion();
-            _logger.Info("当前 Revit 版本: {0}\nCurrent Revit version: {0}", currentVersion);
+            _logger.Info("Current Revit version: {0}", currentVersion);
 
 
 
@@ -91,7 +91,7 @@ namespace revit_mcp_plugin.Core
         {
             if (_uiApp == null)
             {
-                _logger.Warning("无法重新加载命令，UIApplication 尚未初始化\nCannot reload commands because UIApplication has not been initialized.");
+                _logger.Warning("Cannot reload commands because UIApplication has not been initialized.");
                 return;
             }
 
@@ -110,7 +110,7 @@ namespace revit_mcp_plugin.Core
                 int loadedCommandCount = newCommandRegistry.GetRegisteredCommands().Count();
                 if (loadedCommandCount == 0)
                 {
-                    _logger.Error("重新加载命令失败: 未加载任何命令，保留当前命令注册表\nFailed to reload commands: no commands were loaded, keeping the current command registry.");
+                    _logger.Error("Failed to reload commands: no commands were loaded, keeping the current command registry.");
                     return;
                 }
 
@@ -120,11 +120,11 @@ namespace revit_mcp_plugin.Core
                     _commandExecutor = new CommandExecutor(_commandRegistry, _logger);
                 }
 
-                _logger.Info("命令注册表已重新加载\nCommand registry reloaded.");
+                _logger.Info("Command registry reloaded.");
             }
             catch (Exception ex)
             {
-                _logger.Error("重新加载命令失败: {0}\nFailed to reload commands: {0}", ex.Message);
+                _logger.Error("Failed to reload commands: {0}", ex.Message);
             }
         }
 
@@ -231,7 +231,7 @@ namespace revit_mcp_plugin.Core
                     }
 
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    System.Diagnostics.Trace.WriteLine($"收到消息: {message}\nReceived message: {message}");
+                    System.Diagnostics.Trace.WriteLine($"Received message: {message}");
 
                     string response = ProcessJsonRPCRequest(message);
 
