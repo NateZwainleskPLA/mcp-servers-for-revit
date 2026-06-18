@@ -9,10 +9,13 @@ This package is the MCP server component of [mcp-servers-for-revit](https://gith
 
 ## Setup
 
+For a single legacy Revit plugin install, run the server without arguments. For simultaneous Revit versions, configure one MCP server entry per Revit version using `--revit-version`.
+
 **Claude Code**
 
 ```bash
 claude mcp add mcp-server-for-revit -- npx -y mcp-server-for-revit
+claude mcp add mcp-server-for-revit-2026 -- npx -y mcp-server-for-revit --revit-version 2026
 ```
 
 **Claude Desktop**
@@ -22,15 +25,21 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 ```json
 {
     "mcpServers": {
-        "mcp-server-for-revit": {
+        "mcp-server-for-revit-2025": {
             "command": "npx",
-            "args": ["-y", "mcp-server-for-revit"]
+            "args": ["-y", "mcp-server-for-revit", "--revit-version", "2025"]
+        },
+        "mcp-server-for-revit-2026": {
+            "command": "npx",
+            "args": ["-y", "mcp-server-for-revit", "--revit-version", "2026"]
         }
     }
 }
 ```
 
 Restart Claude Desktop. When you see the hammer icon, the MCP server is connected.
+
+Default version-specific plugin ports are `39220` through `39226` for Revit 2020 through 2026. If `--revit-version` is supplied, the server tries the matching port first and then falls back to legacy port `8080` for older plugin installs. If `--port` is supplied, only that port is used.
 
 ## Supported Tools
 
@@ -60,6 +69,7 @@ Restart Claude Desktop. When you see the hammer icon, the MCP server is connecte
 | `store_project_data` | Store project metadata in local database |
 | `store_room_data` | Store room metadata in local database |
 | `query_stored_data` | Query stored project and room data |
+| `get_revit_connection_status` | Inspect connected Revit version, port, plugin status, and fallback warnings |
 | `send_code_to_revit` | Send C# code to Revit to execute |
 | `say_hello` | Display a greeting dialog in Revit (connection test) |
 

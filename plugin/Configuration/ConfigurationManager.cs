@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RevitMCPSDK.API.Interfaces;
 using revit_mcp_plugin.Utils;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace revit_mcp_plugin.Configuration
@@ -33,22 +35,51 @@ namespace revit_mcp_plugin.Configuration
                 if (File.Exists(_configPath))
                 {
                     string json = File.ReadAllText(_configPath);
-                    Config = JsonConvert.DeserializeObject<FrameworkConfig>(json);
+                    Config = DeserializeFrameworkConfig(json);
                     _logger.Info("Configuration file loaded: {0}", _configPath);
+                    _logger.Info("Configuration command count: {0}", Config.Commands.Count);
                 }
                 else
                 {
                     _logger.Error("No configuration file found.");
+                    Config = new FrameworkConfig();
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error("Failed to load configuration file: {0}", ex.Message);
+                Config = new FrameworkConfig();
             }
 
             // 记录加载时间
             // Register load time.
             _lastConfigLoadTime = DateTime.Now;
+        }
+
+        private FrameworkConfig DeserializeFrameworkConfig(string json)
+        {
+            var config = JsonConvert.DeserializeObject<FrameworkConfig>(json) ?? new FrameworkConfig();
+
+            if (config.Commands == null || config.Commands.Count == 0)
+            {
+                var configObject = JObject.Parse(json);
+                if (configObject.TryGetValue("Commands", out var legacyCommandsToken))
+                {
+                    config.Commands = legacyCommandsToken.ToObject<List<CommandConfig>>() ?? new List<CommandConfig>();
+                }
+            }
+
+            if (config.Commands == null)
+            {
+                config.Commands = new List<CommandConfig>();
+            }
+
+            if (config.Settings == null)
+            {
+                config.Settings = new ServiceSettings();
+            }
+
+            return config;
         }
 
         ///// <summary>

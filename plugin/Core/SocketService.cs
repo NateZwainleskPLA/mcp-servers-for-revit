@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Autodesk.Revit.UI;
@@ -20,7 +21,8 @@ namespace revit_mcp_plugin.Core
         private TcpListener _listener;
         private Thread _listenerThread;
         private bool _isRunning;
-        private int _port = 8080;
+        private int _port = 0;
+        private string _currentVersion;
         private UIApplication _uiApp;
         private ICommandRegistry _commandRegistry;
         private ILogger _logger;
@@ -64,6 +66,7 @@ namespace revit_mcp_plugin.Core
             // Get the current Revit version.
             var versionAdapter = new RevitMCPSDK.API.Utils.RevitVersionAdapter(_uiApp.Application);
             string currentVersion = versionAdapter.GetRevitVersion();
+            _currentVersion = currentVersion;
             _logger.Info("Current Revit version: {0}", currentVersion);
 
 
@@ -76,15 +79,9 @@ namespace revit_mcp_plugin.Core
             // Load configuration and register commands.
             ConfigurationManager configManager = new ConfigurationManager(_logger);
             configManager.LoadConfiguration();
-            
 
-            //// 从配置中读取服务端口
-            //// Read the service port from the configuration.
-            //if (configManager.Config.Settings.Port > 0)
-            //{
-            //    _port = configManager.Config.Settings.Port;
-            //}
-            _port = 8080; // 固定端口号 - Hard-wired port number.
+            int configuredPort = configManager.Config?.Settings?.Port ?? 0;
+            _port = configuredPort > 0 ? configuredPort : GetDefaultPortForVersion(currentVersion);
 
             // 加载命令
             // Load command.
@@ -102,7 +99,7 @@ namespace revit_mcp_plugin.Core
             try
             {
                 _isRunning = true;
-                _listener = new TcpListener(IPAddress.Any, _port);
+                _listener = new TcpListener(IPAddress.Loopback, _port);
                 _listener.Start();
 
                 _listenerThread = new Thread(ListenForClients)
@@ -111,9 +108,12 @@ namespace revit_mcp_plugin.Core
                 };
                 _listenerThread.Start();              
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 _isRunning = false;
+                _listener = null;
+                _logger.Error("Failed to start socket service on port {0}: {1}", _port, ex.Message);
+                throw new InvalidOperationException($"Failed to start Revit MCP socket service on port {_port}. The port may already be in use.", ex);
             }
         }
 
@@ -239,6 +239,11 @@ namespace revit_mcp_plugin.Core
                     );
                 }
 
+                if (request.Method == "mcp_status")
+                {
+                    return CreateSuccessResponse(request.Id, CreateStatusResponse());
+                }
+
                 // 查找命令
                 // Search for the command in the registry.
                 if (!_commandRegistry.TryGetCommand(request.Method, out var command))
@@ -291,6 +296,60 @@ namespace revit_mcp_plugin.Core
             };
 
             return response.ToJson();
+        }
+
+        private object CreateStatusResponse()
+        {
+            string activeDocumentTitle = null;
+            try
+            {
+                activeDocumentTitle = _uiApp?.ActiveUIDocument?.Document?.Title;
+            }
+            catch
+            {
+                activeDocumentTitle = null;
+            }
+
+            int commandCount = 0;
+            try
+            {
+                if (_commandRegistry is RevitCommandRegistry registry)
+                {
+                    foreach (var commandName in registry.GetRegisteredCommands())
+                    {
+                        commandCount++;
+                    }
+                }
+            }
+            catch
+            {
+                commandCount = 0;
+            }
+
+            return new
+            {
+                plugin = "mcp-servers-for-revit",
+                pluginVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(),
+                revitVersion = _currentVersion,
+                port = _port,
+                isRunning = _isRunning,
+                processId = System.Diagnostics.Process.GetCurrentProcess().Id,
+                activeDocumentTitle,
+                loadedCommandCount = commandCount
+            };
+        }
+
+        private static int GetDefaultPortForVersion(string revitVersion)
+        {
+            int versionNumber;
+            if (int.TryParse(revitVersion, out versionNumber) &&
+                versionNumber >= 2020 &&
+                versionNumber <= 2099)
+            {
+                return 39200 + (versionNumber % 100);
+            }
+
+            return 39200;
         }
 
         private string CreateErrorResponse(string id, int code, string message, object data = null)

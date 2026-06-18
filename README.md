@@ -65,12 +65,15 @@ The **MCP Server** (TypeScript) translates tool calls from AI clients into WebSo
 
 The MCP server is published as an npm package and can be run directly with `npx`.
 
+For one running Revit version, the legacy setup still works and connects to port `8080` by default. For simultaneous Revit versions, create one MCP server entry per Revit version and pass `--revit-version`.
+
 **Claude Code**
 
 Run this in a **terminal** (not inside Claude Code):
 
 ```bash
 claude mcp add mcp-server-for-revit -- cmd /c npx -y mcp-server-for-revit
+claude mcp add mcp-server-for-revit-2026 -- cmd /c npx -y mcp-server-for-revit --revit-version 2026
 ```
 
 **Claude Desktop**
@@ -80,9 +83,13 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 ```json
 {
     "mcpServers": {
-        "mcp-server-for-revit": {
+        "mcp-server-for-revit-2025": {
             "command": "cmd",
-            "args": ["/c", "npx", "-y", "mcp-server-for-revit"]
+            "args": ["/c", "npx", "-y", "mcp-server-for-revit", "--revit-version", "2025"]
+        },
+        "mcp-server-for-revit-2026": {
+            "command": "cmd",
+            "args": ["/c", "npx", "-y", "mcp-server-for-revit", "--revit-version", "2026"]
         }
     }
 }
@@ -91,6 +98,20 @@ Claude Desktop → Settings → Developer → Edit Config → `claude_desktop_co
 Restart Claude Desktop. When you see the hammer icon, the MCP server is connected.
 
 ![Claude Desktop connection](./assets/claude.png)
+
+Default plugin ports are version-specific:
+
+| Revit Version | Default Port |
+| ------------- | ------------ |
+| 2020 | `39220` |
+| 2021 | `39221` |
+| 2022 | `39222` |
+| 2023 | `39223` |
+| 2024 | `39224` |
+| 2025 | `39225` |
+| 2026 | `39226` |
+
+If `--revit-version` is provided, the MCP server tries that version's default port first. If no explicit `--port` is provided and the version-specific port is unavailable, it falls back to legacy port `8080` for older plugin installs and logs a warning. If `--port` is provided, only that port is used.
 
 ## Revit Plugin Setup
 
@@ -137,6 +158,7 @@ If using a release ZIP, the command set is pre-installed inside the plugin. For 
 | `store_project_data` | Store project metadata in local database |
 | `store_room_data` | Store room metadata in local database |
 | `query_stored_data` | Query stored project and room data |
+| `get_revit_connection_status` | Inspect connected Revit version, port, plugin status, and fallback warnings |
 | `send_code_to_revit` | Send C# code to Revit to execute |
 | `say_hello` | Display a greeting dialog in Revit (connection test) |
 
